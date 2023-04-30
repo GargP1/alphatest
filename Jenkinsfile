@@ -1,4 +1,8 @@
 pipeline {
+    agent any
+       triggers {
+        pollSCM "* * * * *"
+       }
 //  agent {
  //   kubernetes {
   //    yaml """
