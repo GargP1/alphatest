@@ -123,7 +123,7 @@ pipeline {
                   			    }
                   			  }
                   		        }
-                  	//              }
+                  	              }
                                     }
                       
                       stage('Create lambda artifacts') {
