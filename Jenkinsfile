@@ -48,8 +48,7 @@ pipeline {
         steps {
           container('aws-sam-cli') {
               ansiColor('xterm') {
-                  sh ''
-                  '
+                  sh '''
 
                   echo " ------ Testing Transform Job Input Lambda ------ "
                   cd transform_job_input
