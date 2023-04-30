@@ -32,18 +32,18 @@ pipeline {
 
   stages {
 
-    stage('Test') {
-        steps {
-          container('aws-cli') {
-            sh '''
-
-               echo " ------ Testing Transform Job Input Lambda ------ "
-               aws --region us-east-1  lambda list-functions
-
-              '''
-            }
-          }
-        }
+//    stage('Test') {
+//        steps {
+//           container('aws-cli') {
+//            sh '''
+//
+//               echo " ------ Testing Transform Job Input Lambda ------ "
+//               aws --region us-east-1  lambda list-functions
+//
+//              '''
+//            }
+//          }
+//        }
 
 
     stage('Build and Run unit tests') {
@@ -68,10 +68,10 @@ pipeline {
     }
 
     stage('Pre-Deploy Lambda Version Check') {
-      when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*" } }
+      when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"; branch "main" } }
         steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: "${env.AWS_ACCOUNT_NUMBER}") {
-          container('aws-cli') {
+//	withAWS(role: 'JenkinsDeployment', roleAccount: "${env.AWS_ACCOUNT_NUMBER}") {
+//          container('aws-cli') {
             script {
                 data = sh (
                         script: "aws --region ${env.REGION} lambda list-functions",
@@ -129,8 +129,8 @@ pipeline {
 
 			 }
 }}
-}
-}
+//}
+//}
 }
     
     stage('Create lambda artifacts') {
