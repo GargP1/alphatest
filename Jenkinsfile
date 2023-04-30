@@ -66,7 +66,7 @@ pipeline {
                       }
 
                       stage('Pre-Deploy Lambda Version Check') {
-                        when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"; branch "main" } }
+                        when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"; branch "main/*" } }
                           steps {
                           //  container('aws-cli') {
                               script {
