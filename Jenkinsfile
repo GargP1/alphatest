@@ -1,7 +1,7 @@
 pipeline {
     agent any
     parameters {
-        string(functionName: 'abc')
+ 	string(name: 'functionName', description: 'abc')
     }
 
 //  agent {
