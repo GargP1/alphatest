@@ -9,7 +9,7 @@ pipeline {
        //       labels:
         //        some-label: some-label-value
          //   spec:
-              serviceAccountName: jenkins-agent-pods-build
+          //    serviceAccountName: jenkins-agent-pods-build
           //    containers:
            //   - name: aws-sam-cli
             //    image:  023910024771.dkr.ecr.eu-west-1.amazonaws.com/aws-sam-cli-p3.9:0.1-slim
@@ -21,7 +21,7 @@ pipeline {
   //              - cat
    //             tty: true
     //          - name: jnlp
-                image: '023910024771.dkr.ecr.eu-west-1.amazonaws.com/jenkins/inbound-agent:4.11-1-alpine'
+     //           image: '023910024771.dkr.ecr.eu-west-1.amazonaws.com/jenkins/inbound-agent:4.11-1-alpine'
      //       """
     //}
   //}
