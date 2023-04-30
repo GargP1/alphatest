@@ -89,49 +89,47 @@ pipeline {
 		  echo "Function ${params.functionName} does not exist"
 		  }
 		}
-}}
-//		//Check if Lambda Alias exists
-//		if (isFunctionDeployed) {
-//		  data = sh (
- //                        script: "aws --region us-east-1 lambda list-aliases --function-name ${params.functionName}",
-  //                       returnStdout: true
-//	          ).trim()
- //                  def alias_list = readJSON(text: data)
-  //                 if (!alias_list.Aliases.isEmpty()) {
-   //                   alias_list.Aliases.each {
-    //                    if ("${it.Name}" == "${params.aliasName}") {
-     //                      echo "Alias ${params.aliasName} for Lambda Function ${params.functionName} is deployed"
-      //                     isAliasDeployed = true
-       //                     } else {
-        //                      echo "Alias ${params.aliasName} for Lambda Function ${params.functionName} does not exist"
-	//		      }
-	//		    }
-//
-//	        //Check highest Lambda version i.e. oldVersion
-//		if (isAliasDeployed) {
- //                             data = sh (
-  //                                  script: "aws --region us-east-1 lambda list-versions-by-function --function-name ${params.functionName}",
-   //                                 returnStdout: true
-    //                          ).trim()
-     //                         def old_version_list = readJSON(text: data)
-      //                        def old_versions = []
-       //                       old_version_list.Versions = old_version_list.Versions.tail()
-        //                      old_version_list.Versions.each {
-         //                       old_versions.add(it.Version.toInteger())
-          //                    }
-           //                   oldVersion = old_versions.max()
-            //                  echo "Old version of Lambda function ${params.functionName} is ${oldVersion}"
-//
- //                           } else {
-  //                            echo "Alias ${params.aliasName} does not exist, skipping version check"
-//
-//			      }
-//
-//			    }
-//
-//			 }
-//}//}
-//}
+		//Check if Lambda Alias exists
+		if (isFunctionDeployed) {
+		  data = sh (
+                         script: "aws --region us-east-1 lambda list-aliases --function-name ${params.functionName}",
+                         returnStdout: true
+	          ).trim()
+                   def alias_list = readJSON(text: data)
+                   if (!alias_list.Aliases.isEmpty()) {
+                      alias_list.Aliases.each {
+                        if ("${it.Name}" == "${params.aliasName}") {
+                           echo "Alias ${params.aliasName} for Lambda Function ${params.functionName} is deployed"
+                           isAliasDeployed = true
+                            } else {
+                              echo "Alias ${params.aliasName} for Lambda Function ${params.functionName} does not exist"
+			      }
+			    }
+	        //Check highest Lambda version i.e. oldVersion
+		if (isAliasDeployed) {
+                              data = sh (
+                                    script: "aws --region us-east-1 lambda list-versions-by-function --function-name ${params.functionName}",
+                                    returnStdout: true
+                             ).trim()
+                              def old_version_list = readJSON(text: data)
+                              def old_versions = []
+                              old_version_list.Versions = old_version_list.Versions.tail()
+                              old_version_list.Versions.each {
+                                old_versions.add(it.Version.toInteger())
+                              }
+                              oldVersion = old_versions.max()
+                              echo "Old version of Lambda function ${params.functionName} is ${oldVersion}"
+
+                            } else {
+                              echo "Alias ${params.aliasName} does not exist, skipping version check"
+
+			      }
+
+			    }
+
+			 }
+}
+}
 }
     
     stage('Create lambda artifacts') {
