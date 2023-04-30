@@ -78,6 +78,8 @@ pipeline {
                         script: "aws --region us-east-1 lambda list-functions",
                         returnStdout: true
 		).trim()
+}
+}
 		//Check if Lambda function exists
 //		def function_list = readJSON(text: data)
 //		function_list.Functions.each {
@@ -129,7 +131,7 @@ pipeline {
 //			    }
 //
 //			 }
-}//}
+//}//}
 //}
 //}
 }
