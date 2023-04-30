@@ -71,8 +71,7 @@ pipeline {
     stage('Pre-Deploy Lambda Version Check') {
     //  when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"; branch "main" } }
         steps {
-//	withAWS(role: 'JenkinsLambdaRole', roleAccount: "412857254796") {
-//          container('aws-cli') {
+          container('aws-cli') {
             script {
                 data = sh (
                         script: "aws --region us-east-1 lambda list-functions",
@@ -128,6 +127,7 @@ pipeline {
 			    }
 
 			 }
+}
 }
 }
 }
