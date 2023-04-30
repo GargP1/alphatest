@@ -3,6 +3,11 @@ pipeline {
        triggers {
         pollSCM "* * * * *"
        }
+
+    environment {
+        REGION = "us-east-1"
+    }
+
 //  agent {
  //   kubernetes {
   //    yaml """
