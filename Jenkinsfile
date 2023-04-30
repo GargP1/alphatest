@@ -31,6 +31,21 @@ pipeline {
   //}
 
   stages {
+
+    stage('Test') {
+        steps {
+          //container('aws-cli') {
+            sh '''
+
+               echo " ------ Testing Transform Job Input Lambda ------ "
+               aws --region us-east-1  lambda list-functions
+
+              '''
+            // }
+          }
+        }
+
+
     stage('Build and Run unit tests') {
       when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*" } }
         steps {
