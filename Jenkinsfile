@@ -4,10 +4,6 @@ pipeline {
         pollSCM "* * * * *"
        }
 
-    environment {
-        REGION = "us-east-1"
-    }
-
 //  agent {
  //   kubernetes {
   //    yaml """
@@ -73,6 +69,9 @@ pipeline {
     }
 
     stage('Pre-Deploy Lambda Version Check') {
+            environment {
+                REGION = "us-east-1"
+            }
     //  when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"; branch "main" } }
         steps {
 //	withAWS(role: 'JenkinsDeployment', roleAccount: "${env.AWS_ACCOUNT_NUMBER}") {
