@@ -1,30 +1,30 @@
 pipeline {
-  agent {
-    kubernetes {
-      yaml """
-            apiVersion: v1
-            kind: Pod
-            metadata:
-              annotations:
-              labels:
-                some-label: some-label-value
-            spec:
+//  agent {
+ //   kubernetes {
+  //    yaml """
+   //         apiVersion: v1
+    //        kind: Pod
+     //       metadata:
+      //        annotations:
+       //       labels:
+        //        some-label: some-label-value
+         //   spec:
               serviceAccountName: jenkins-agent-pods-build
-              containers:
-              - name: aws-sam-cli
-                image:  023910024771.dkr.ecr.eu-west-1.amazonaws.com/aws-sam-cli-p3.9:0.1-slim
-                resources:
-                  requests:
-                    memory: "2G"
-                    cpu: "2"
-                command:
-                - cat
-                tty: true
-              - name: jnlp
+          //    containers:
+           //   - name: aws-sam-cli
+            //    image:  023910024771.dkr.ecr.eu-west-1.amazonaws.com/aws-sam-cli-p3.9:0.1-slim
+             //   resources:
+              //    requests:
+               //     memory: "2G"
+//                    cpu: "2"
+ //               command:
+  //              - cat
+   //             tty: true
+    //          - name: jnlp
                 image: '023910024771.dkr.ecr.eu-west-1.amazonaws.com/jenkins/inbound-agent:4.11-1-alpine'
-            """
-    }
-  }
+     //       """
+    //}
+  //}
 
   stages {
     stage('Build and Run unit tests') {
