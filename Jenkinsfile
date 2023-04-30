@@ -1,8 +1,8 @@
 pipeline {
     agent any
-       triggers {
-        pollSCM "* * * * *"
-       }
+    parameters {
+        string(functionName: 'abc')
+    }
 
 //  agent {
  //   kubernetes {
@@ -78,19 +78,18 @@ pipeline {
                         script: "aws --region us-east-1 lambda list-functions",
                         returnStdout: true
 		).trim()
-}
-}
 		//Check if Lambda function exists
-//		def function_list = readJSON(text: data)
-//		function_list.Functions.each {
-//		  if ("${it.FunctionName}" == "${params.functionName}") {
-//		  println "Function ${params.functionName} is deployed"
-//		  isFunctionDeployed = true
-//		  }
-////		  else {
-//		  echo "Function ${params.functionName} does not exist"
-//		  }
-//		}
+		def function_list = readJSON(text: data)
+		function_list.Functions.each {
+		  if ("${it.FunctionName}" == "${params.functionName}") {
+		  println "Function ${params.functionName} is deployed"
+		  isFunctionDeployed = true
+		  }
+		  else {
+		  echo "Function ${params.functionName} does not exist"
+		  }
+		}
+}}
 //		//Check if Lambda Alias exists
 //		if (isFunctionDeployed) {
 //		  data = sh (
