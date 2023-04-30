@@ -34,14 +34,14 @@ pipeline {
 
     stage('Test') {
         steps {
-          //container('aws-cli') {
+          container('aws-cli') {
             sh '''
 
                echo " ------ Testing Transform Job Input Lambda ------ "
                aws --region us-east-1  lambda list-functions
 
               '''
-            // }
+            }
           }
         }
 
