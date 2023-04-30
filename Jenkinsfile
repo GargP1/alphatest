@@ -71,7 +71,7 @@ pipeline {
     stage('Pre-Deploy Lambda Version Check') {
     //  when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"; branch "main" } }
         steps {
-//	withAWS(role: 'JenkinsDeployment', roleAccount: "${env.AWS_ACCOUNT_NUMBER}") {
+	withAWS(role: 'JenkinsLambdaRole', roleAccount: "412857254796") {
 //          container('aws-cli') {
             script {
                 data = sh (
@@ -132,7 +132,7 @@ pipeline {
 //			 }
 //}//}
 //}
-//}
+}
 }
     
     stage('Create lambda artifacts') {
