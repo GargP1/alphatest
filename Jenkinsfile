@@ -69,16 +69,13 @@ pipeline {
     }
 
     stage('Pre-Deploy Lambda Version Check') {
-            environment {
-                REGION = "us-east-1"
-            }
     //  when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"; branch "main" } }
         steps {
 //	withAWS(role: 'JenkinsDeployment', roleAccount: "${env.AWS_ACCOUNT_NUMBER}") {
 //          container('aws-cli') {
             script {
                 data = sh (
-                        script: "aws --region ${env.REGION} lambda list-functions",
+                        script: "aws --region us-east-1 lambda list-functions",
                         returnStdout: true
 		).trim()
 		//Check if Lambda function exists
@@ -95,7 +92,7 @@ pipeline {
 		//Check if Lambda Alias exists
 		if (isFunctionDeployed) {
 		  data = sh (
-                         script: "aws --region ${env.REGION} lambda list-aliases --function-name ${params.functionName}",
+                         script: "aws --region us-east-1 lambda list-aliases --function-name ${params.functionName}",
                          returnStdout: true
 	          ).trim()
                    def alias_list = readJSON(text: data)
@@ -112,7 +109,7 @@ pipeline {
 	        //Check highest Lambda version i.e. oldVersion
 		if (isAliasDeployed) {
                               data = sh (
-                                    script: "aws --region ${env.REGION} lambda list-versions-by-function --function-name ${params.functionName}",
+                                    script: "aws --region us-east-1 lambda list-versions-by-function --function-name ${params.functionName}",
                                     returnStdout: true
                               ).trim()
                               def old_version_list = readJSON(text: data)
