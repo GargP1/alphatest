@@ -1,7 +1,7 @@
 pipeline {
   agent any
   parameters {
-    string(name: 'functionName', description: 'abc')
+    string(name: 'functionName', description: 'Provide the Lambda function for validation')
   }
 
   environment {
