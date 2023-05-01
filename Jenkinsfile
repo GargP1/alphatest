@@ -29,7 +29,7 @@ pipeline {
                     memory: "0.2G"
                     cpu: "0.1"
               - name: jnlp
-                image: 'nginx'
+                image: jenkins/inbound-agent:4.3-4-jdk11
             """
             }
         }
