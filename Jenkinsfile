@@ -1,28 +1,5 @@
 pipeline {
 //  agent any
-  parameters {
-    string(name: 'functionName', description: 'Provide the Lambda function for validation')
-  }
-
-  environment {
-        REGION = 'us-east-1'
-  }
-
-  agent {
-    kubernetes {
-      yaml '''
-        apiVersion: v1
-        kind: Pod
-        spec:
-          containers:
-          - name: maven
-            image: maven:alpine
-            command:
-            - cat
-            tty: true
-        '''
-    }
-
     agent {
             kubernetes {
                 yaml """
@@ -55,6 +32,14 @@ pipeline {
             """
             }
         }
+
+  parameters {
+    string(name: 'functionName', description: 'Provide the Lambda function for validation')
+  }
+
+  environment {
+        REGION = 'us-east-1'
+  }
 
   stages {
 
