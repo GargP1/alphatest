@@ -74,7 +74,7 @@ pipeline {
                       stage('Pre-Deploy Lambda Version Check') {
                        // when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"; branch "main/*" } }
                           steps {
-                          //  container('aws-cli') {
+                            container('aws-cli') {
                               script {
                                   data = sh (
                                           script: "aws --region ${REGION} lambda list-functions",
@@ -131,6 +131,7 @@ pipeline {
                   		        }
                   	              }
                                     }
+				  }
                       
                       stage('Create lambda artifacts') {
                         when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*" } }
