@@ -7,7 +7,8 @@ pipeline {
             kind: Pod
             metadata:
             labels:
-                some-label: some-label-value
+                // some-label: some-label-value
+                jenkins: slave
             spec:
               //serviceAccountName: jenkins-agent-pods
               serviceAccountName: jenkins
