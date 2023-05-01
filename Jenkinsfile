@@ -13,9 +13,9 @@ pipeline {
               //serviceAccountName: jenkins-agent-pods
               serviceAccountName: jenkins
               containers:
-              - name: aws-sam-cli
+              - name: aws-cli
                 //image: 023910024771.dkr.ecr.eu-west-1.amazonaws.com/amazon/aws-cli:latest
-                image: nginx
+                image: amazon/aws-cli
                 command:
                 - cat
                 tty: true
