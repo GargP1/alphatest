@@ -1,5 +1,5 @@
 pipeline {
-  agent any
+//  agent any
   parameters {
     string(name: 'functionName', description: 'Provide the Lambda function for validation')
   }
@@ -8,32 +8,53 @@ pipeline {
         REGION = 'us-east-1'
   }
 
-  //  agent {
-  //   kubernetes {
-  //    yaml """
-  //         apiVersion: v1
-  //        kind: Pod
-  //       metadata:
-  //        annotations:
-  //       labels:
-  //        some-label: some-label-value
-  //   spec:
-  //    serviceAccountName: jenkins-agent-pods-build
-  //    containers:
-  //   - name: aws-sam-cli
-  //    image:  023910024771.dkr.ecr.eu-west-1.amazonaws.com/aws-sam-cli-p3.9:0.1-slim
-  //   resources:
-  //    requests:
-  //     memory: "2G"
-  //                    cpu: "2"
-  //               command:
-  //              - cat
-  //             tty: true
-  //          - name: jnlp
-  //           image: '023910024771.dkr.ecr.eu-west-1.amazonaws.com/jenkins/inbound-agent:4.11-1-alpine'
-  //       """
-  //}
-  //}
+  agent {
+    kubernetes {
+      yaml '''
+        apiVersion: v1
+        kind: Pod
+        spec:
+          containers:
+          - name: maven
+            image: maven:alpine
+            command:
+            - cat
+            tty: true
+        '''
+    }
+
+    agent {
+            kubernetes {
+                yaml """
+            apiVersion: v1
+            kind: Pod
+            metadata:
+            labels:
+                some-label: some-label-value
+            spec:
+              //serviceAccountName: jenkins-agent-pods
+              serviceAccountName: jenkins
+              containers:
+              - name: aws-sam-cli
+                //image: 023910024771.dkr.ecr.eu-west-1.amazonaws.com/amazon/aws-cli:latest
+                image: nginx
+                command:
+                - cat
+                tty: true
+              - name: terraform
+                image: nginx
+                command:
+                - cat
+                tty: true
+                resources:
+                  requests:
+                    memory: "0.2G"
+                    cpu: "0.1"
+              - name: jnlp
+                image: 'nginx'
+            """
+            }
+        }
 
   stages {
 
