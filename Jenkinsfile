@@ -90,6 +90,7 @@ pipeline {
         ACCOUNT_NUMBER = getEnvAccountNumber(params.ENV)
         ENV = "${params.ENV}"
         AWS_DEFAULT_REGION = "us-east-1"
+        BRANCH_NAME = "main"
     }
 
     stages {
