@@ -1,53 +1,5 @@
-// If this list grows any bigger move it to SSM
-def getEnvAccountNumber(env) {
-    // Clean up env name to allow for key lookup
-    thisEnv = env.replaceAll("-","")
-    def accountMap = [
-        dev: "036140576280",
-        qa: "575873681961",
-        stg: "053548589897",
-        prod: "913388582969",
-        osedev: "164375936220",
-        oseqa: "788119114344",
-        osestg: "961665515316",
-        oseprod: "951502535150",
-        test: "412857254796",
-        infra: "023910024771"
-    ]
-    return accountMap[thisEnv]
-}
-
 pipeline {
-//    agent {
-//        kubernetes {
-//            yaml """
-//        apiVersion: v1
-//        kind: Pod
-//        metadata:
-//        labels:
-//            deployment-runner: mle-ose-infra
-//        spec:
-//        serviceAccountName: jenkins-agent-pods
-//        containers:
-//        - name: aws-cli
-//            image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/amazon/aws-cli:latest
-//            command:
-//            - cat
-//            tty: true
-//        - name: terraform
-//            image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/terraform:latest
-//            command:
-//            - cat
-//            tty: true
-//            resources:
-//            requests:
-//                memory: "2G"
-//                cpu: "1"
-//        - name: jnlp
-//            image: '023910024771.dkr.ecr.us-east-1.amazonaws.com/jenkins/inbound-agent:latest'
-//        """    
-//        }
-//    }
+//  agent any
     agent {
             kubernetes {
                 yaml """
@@ -68,7 +20,7 @@ pipeline {
                 - cat
                 tty: true
               - name: terraform
-                image: hashicorp/terraform
+                image: nginx
                 command:
                 - cat
                 tty: true
@@ -82,176 +34,152 @@ pipeline {
             }
         }
 
-    parameters {
-        choice(name: 'ENV', choices: ['osedev', 'oseqa', 'osestg', 'oseprod', 'test'], description: 'Select environment to apply changes to')
-    }
+  parameters {
+    string(name: 'functionName', description: 'Provide the Lambda function for validation')
+  }
 
-    environment{
-        ACCOUNT_NUMBER = getEnvAccountNumber(params.ENV)
-        ENV = "${params.ENV}"
-        AWS_DEFAULT_REGION = "us-east-1"
-    }
+  environment {
+        REGION = 'us-east-1'
+  }
 
-    stages {
+  stages {
 
-   //     stage('Configure Build Env') {
-  //         steps {
-   //             script {
-    //                // Reads file by leveraging the 'Pipeline Utility Steps' plugin
-    //                readProperties(file: "tf/env_vars/${BRANCH_NAME}.env").each { key, value -> env[key] = value }
-    //            }
-    //        }
-    //    }
-
-        stage('Get Pre-Deployment Lambda Version') {
-            steps {
-                script {
-                   //  sh("echo 'check version'")
-                   sh '''
-			aws sts get-caller-identity
-		'''
-                }
-            }
-        }
-
-    stage('TF init & validate global') {
-      steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
-          container('terraform') {
-            ansiColor('xterm') {
-              sh '''
-                set +x
-                if [[ $CHANGE_TARGET ]]; then
-                  TARGET_ENV=$CHANGE_TARGET
-                else
-                  TARGET_ENV=$BRANCH_NAME
-                fi
-                if [ -d "tf/envs/${TARGET_ENV}/global" ]; then
-                  cd tf/envs/${TARGET_ENV}/global
-                  export GIT_SSH_COMMAND="ssh -i $SSH_KEY -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-                  terraform init
-                  terraform validate
-                else
-                  echo "*************** SKIPPING INIT ******************"
-                  echo "Branch '$TARGET_ENV/global' does not represent an official environment."
-                  echo "*************************************************"
-                fi
-              '''
-            }
+    stage('Build and Run unit tests') {
+        when {
+          anyOf {
+            branch "develop";
+            changeRequest target: 'develop';
+            tag "v*"
           }
         }
-      }
-    }
+        steps {
+          container('aws-sam-cli') {
+              ansiColor('xterm') {
+                  sh '''
 
-    stage('TF plan global') {
-      steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
-          container('terraform') {
-            script {
-              def retVal = sh(returnStatus: true, script: '''
-                set +x
-                if [[ $CHANGE_TARGET ]]; then
-                  TARGET_ENV=$CHANGE_TARGET
-                else
-                  TARGET_ENV=$BRANCH_NAME
-                fi
-                if [ -d "tf/envs/${TARGET_ENV}/global" ]; then
-                  cd tf/envs/${TARGET_ENV}/global
-                  terraform plan -detailed-exitcode
-                  exit
-                else
-                  echo "*************** SKIPPING PLAN ******************"
-                  echo "Branch '$TARGET_ENV/global' does not represent an official environment."
-                  echo "*************************************************"
-                fi
-              ''')
-              if (retVal == 0) {
-                runStageFlag = false
-              }
-            }
-          }
-        }
-      }
-    }
+                  echo " ------ Testing Transform Job Input Lambda ------ "
+                  cd transform_job_input
+                  export PYTHONPATH = "${PYTHONPATH}": $PWD / src
+                  pip install - r tests / requirements.txt
+                  python - W ignore - m pytest tests / unit
+                  /* -v --log-cli-level=INFO --junit-xml test_results.xml
+                                 unset PYTHONPATH
+                                 cd ..
 
-    stage('Approval global') {
-      when {
-        anyOf {branch "main";branch "qa"; branch "stg"; branch "prod"}
-        expression { return runStageFlag }
-      }
-      steps {
-        script {
-          def userInput = input(id: 'confirm', message: 'Apply Terraform?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Apply terraform', name: 'confirm'] ])
-        }
-      }
-    }
+                                '''
+                              }   
+                            }
+                          }
+                      }
 
-    stage('TF Apply global') {
-      when {
-        anyOf {branch "main";branch "qa"; branch "stg"; branch "prod"}
-        expression { return runStageFlag }
-      }
-      steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
-          container('terraform') {
-            ansiColor('xterm') {
-              sh '''
-                set +x
-                TARGET_ENV=$BRANCH_NAME
-                cd tf/envs/${TARGET_ENV}/global
-                terraform apply -input=false -auto-approve
-              '''
-            }
-          }
-        }
-      }
-    }
+                      stage('Pre-Deploy Lambda Version Check') {
+                       // when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"; branch "main/*" } }
+                          steps {
+                            container('aws-cli') {
+                              script {
+                                  data = sh (
+                                          script: "aws --region ${REGION} lambda list-functions",
+                                          returnStdout: true
+                  		).trim()
+                  		//Check if Lambda function exists
+                  		def function_list = readJSON(text: data)
+                  		function_list.Functions.each {
+                  		  if ("${it.FunctionName}" == "${params.functionName}") {
+                  		  println "Function ${params.functionName} is deployed"
+                  		  isFunctionDeployed = true
+                  		  }
+                  		  else {
+                  		  echo "Function ${params.functionName} does not exist"
+                  		  }
+                  		}
+                  		//Check if Lambda Alias exists
+                  		if (isFunctionDeployed) {
+                  		  data = sh (
+                                           script: "aws --region ${REGION} lambda list-aliases --function-name ${params.functionName}",
+                                           returnStdout: true
+                  	          ).trim()
+                                     def alias_list = readJSON(text: data)
+                                     if (!alias_list.Aliases.isEmpty()) {
+                                        alias_list.Aliases.each {
+                                          if ("${it.Name}" == "${params.aliasName}") {
+                                             echo "Alias ${params.aliasName} for Lambda Function ${params.functionName} is deployed"
+                                             isAliasDeployed = true
+                                              } else {
+                                                echo "Alias ${params.aliasName} for Lambda Function ${params.functionName} does not exist"
+                  			      }
+                  			    }
+                  	        //Check highest Lambda version i.e. oldVersion
+                  		if (isAliasDeployed) {
+                                                data = sh (
+                                                      script: "aws --region ${REGION} lambda list-versions-by-function --function-name ${params.functionName}",
+                                                      returnStdout: true
+                                               ).trim()
+                                                def old_version_list = readJSON(text: data)
+                                                def old_versions = []
+                                                old_version_list.Versions = old_version_list.Versions.tail()
+                                                old_version_list.Versions.each {
+                                                  old_versions.add(it.Version.toInteger())
+                                                }
+                                                oldVersion = old_versions.max()
+                                                echo "Old version of Lambda function ${params.functionName} is ${oldVersion}"
 
-        stage('Get Post-Deployment Lambda Version') {
-            steps {
-                script {
-                    sh("echo 'check version'")
-                }
-            }
-        }
+                                              } else {
+                                                echo "Alias ${params.aliasName} does not exist, skipping version check"
+
+                  			      }
+                  			    }
+                  			  }
+                  		        }
+                  	              }
+                                    }
+				  }
+                      
+                      stage('Create lambda artifacts') {
+                        when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*" } }
+                          steps {
+                            container('aws-sam-cli') {
+                              ansiColor('xterm') {  
+                              sh '''
+
+                                echo "----- Printing versions -----"
+                                sam --version 
+                                aws --version
+                                python --version
 
 
-        stage('Run Tests') {
-            steps {
-                container('aws-cli') {
-                    script {
-                        sh """ 
-			    #!/bin/bash
+                                echo "----- Building Transform Job Input Lambda ------"
+                                cd transform_job_input
+                                sam build --template template.yaml
+                                cd ..
 
-                            # Assume role
-                            aws sts get-caller-identity
-                            echo "[INFO] - Assume the cross account JenkinsDeployment role into $ACCOUNT_NUMBER"
-                            set +x
-                            . ./scripts/jenkins/assume-role.sh
-                            set -x
-                            aws sts get-caller-identity 
-                            
-                            ######################################################
-                            # TODO: boil down into custom container image
-                            pyenv install 3.9.5
-                            pyenv virtualenv 3.9.5 batch-transform-integration-env
-                            pyenv activate batch-transform-integration-env
-                            pip install -r requirements.txt
-                            ######################################################
+                                '''
+                              }
+                            }    
+                          }
+                      }
+                   
+                      stage('Zip and Upload artifact') {
+                        when { anyOf { tag "v*"; branch "feature/*" }}
+                          steps {
+                            container('aws-sam-cli') {
+                              ansiColor('xterm') {   
+                              sh '''
 
-                            # POST-PYTEST MERGE
-                            # pytest trigger_batch_step_function.py \
-                            #    --model_package_arn arn:aws:sagemaker:us-east-1:$ACCOUNT_NUMBER:model-package/atum-score-2022-12-21-15-30-3/1 \
-                            #    --input_data_key batch-transform-input/atum-score-2022-12-21-15-30-3/atum-score-2022-12-21-15-30-3.jsonl.gzip \
-                            #    --reference_output_key batch-transform-output/atum-score-2022-12-21-15-30-3-demo/output/atum-score-2022-12-21-15-30-3-demo.jsonl.gzip.out \
-                            #    --env $ENV \
-                            #    --log-cli-level=INFO
+                                echo " ----- Zip Transform Job Input Lambda artifact ----- "
+                                cd transform_job_input
+                                cd .aws-sam/build/transformJobInput
+                                zip -rqq ../../../transformJobInput.zip *
+                                cd ../../../
 
-                            python3 trigger_batch_step_function.py --bucket mle-ts-nextgen-ose-$ENV --trigger_rule "lds batch score trigger" --model_package_arn arn:aws:sagemaker:us-east-1:$ACCOUNT_NUMBER:model-package/atum-score-2022-12-21-15-30-3/1 --input_data_key batch-transform-input/atum-score-gz-2022-12-21-15-30-3/atum-score-2022-12-21-15-30-3.jsonl.gz --reference_output_key batch-transform-output/atum-score-2022-12-21-15-30-3-demo/output/atum-score-2022-12-21-15-30-3.jsonl.gzip.out
-                        """
+                                echo " ----- Upload Transform Job Input Lambda LAMBDA ${TAG_NAME} to S3 bucket ----- "
+                                aws s3 cp transformJobInput.zip s3://ts-ml-platform-artifacts-eu-west-1/mle_lambda_ose/${TAG_NAME}/transformJobInput.zip
+                                aws s3 cp transformJobInput.zip s3://ts-ml-platform-artifacts-${REGION}/mle_lambda_ose/${TAG_NAME}/transformJobInput.zip
+                                cd ..
+
+                                '''           
+                              }
+                            }
+                          }
+                      }
                     }
-                }
-            }
-        }
-    }
-}
+                  }
