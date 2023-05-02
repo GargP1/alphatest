@@ -145,7 +145,7 @@ pipeline {
       steps {
 	//withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
           container('terraform') {
-            script {
+            script  '''
               def retVal = sh(returnStatus: true, script: '''
                 set +x
                 if [[ $CHANGE_TARGET ]]; then
@@ -166,7 +166,7 @@ pipeline {
               if (retVal == 0) {
                 runStageFlag = false
               }
-            }
+           ''' 
           }
         }
       }
