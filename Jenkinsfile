@@ -42,6 +42,7 @@ pipeline {
 
   environment {
         REGION = 'us-east-1'
+        AWS_ACCOUNT_NUMBER = ''
   }
 
   stages {
