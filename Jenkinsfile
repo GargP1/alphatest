@@ -167,6 +167,7 @@ pipeline {
               if (retVal == 0) {
                 runStageFlag = false
               '''
+               }
               }
             }
           }
