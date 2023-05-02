@@ -166,10 +166,11 @@ pipeline {
 	      sh '''
               if (retVal == 0) {
                 runStageFlag = false
-              '''
                }
+              '''
               }
             }
+         }
         }
     //}
 
