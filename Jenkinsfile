@@ -113,7 +113,7 @@ pipeline {
 
     stage('TF init & validate global') {
       steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: ${ENV}) {
+	withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
           container('terraform') {
             ansiColor('xterm') {
               sh '''
@@ -142,7 +142,7 @@ pipeline {
 
     stage('TF plan global') {
       steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: ${ENV}) {
+	withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
           container('terraform') {
             script {
               def retVal = sh(returnStatus: true, script: '''
@@ -189,7 +189,7 @@ pipeline {
         expression { return runStageFlag }
       }
       steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: ${ENV}) {
+	withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
           container('terraform') {
             ansiColor('xterm') {
               sh '''
