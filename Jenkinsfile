@@ -106,10 +106,7 @@ pipeline {
         stage('Get Pre-Deployment Lambda Version') {
             steps {
                 script {
-                   //  sh("echo 'check version'")
-                   sh '''
-			aws sts get-caller-identity
-		'''
+                    sh("echo 'check version'")
                 }
             }
         }
