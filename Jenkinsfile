@@ -1,34 +1,33 @@
 pipeline {
+//  agent any
     agent {
             kubernetes {
                 yaml """
             apiVersion: v1
             kind: Pod
             metadata:
-              annotations:
-              labels:
-                some-label: some-label-value
+            labels:
+                // some-label: some-label-value
+                jenkins: slave
             spec:
+              //serviceAccountName: jenkins-agent-pods
               serviceAccountName: jenkins
               containers:
-              - name: aws-sam-cli
-                image: nginx 
-                resources:
-                  requests:
-                    memory: "0.2G"
-                    cpu: "0.2"
-                command:
-                - cat
-                tty: true
               - name: aws-cli
+                //image: 023910024771.dkr.ecr.eu-west-1.amazonaws.com/amazon/aws-cli:latest
                 image: amazon/aws-cli
-                resources:
-                  requests:
-                    memory: "0.2G"
-                    cpu: "0.2"
                 command:
                 - cat
                 tty: true
+              - name: terraform
+                image: nginx
+                command:
+                - cat
+                tty: true
+                resources:
+                  requests:
+                    memory: "0.2G"
+                    cpu: "0.1"
               - name: jnlp
                 image: jenkins/inbound-agent
             """
@@ -36,13 +35,11 @@ pipeline {
         }
 
   parameters {
-    string(name: 'functionName', description: 'Provide the Lambda function for validation', defaultValue: "log-user-parameters")
-    string(name: 'aliasName', description: 'Provide the alias Name for Lambda function', defaultValue: "latest")
+    string(name: 'functionName', description: 'Provide the Lambda function for validation')
   }
 
   environment {
         REGION = 'us-east-1'
-        AWS_ACCOUNT_NUMBER = ''
   }
 
   stages {
@@ -76,7 +73,7 @@ pipeline {
                       }
 
                       stage('Pre-Deploy Lambda Version Check') {
-                       // when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"} }
+                       // when { anyOf {branch "develop";changeRequest target: 'develop'; tag "v*"; branch "feature/*"; branch "main/*" } }
                           steps {
                             container('aws-cli') {
                               script {
@@ -87,34 +84,34 @@ pipeline {
                   		//Check if Lambda function exists
                   		def function_list = readJSON(text: data)
                   		function_list.Functions.each {
-                  		  if ("${it.FunctionName}" == "${functionName}") {
-                  		  println "Function ${functionName} is deployed"
+                  		  if ("${it.FunctionName}" == "${params.functionName}") {
+                  		  println "Function ${params.functionName} is deployed"
                   		  isFunctionDeployed = true
                   		  }
                   		  else {
-                  		  echo "Function ${functionName} does not exist"
+                  		  echo "Function ${params.functionName} does not exist"
                   		  }
                   		}
                   		//Check if Lambda Alias exists
                   		if (isFunctionDeployed) {
                   		  data = sh (
-                                           script: "aws --region ${REGION} lambda list-aliases --function-name ${functionName}",
+                                           script: "aws --region ${REGION} lambda list-aliases --function-name ${params.functionName}",
                                            returnStdout: true
                   	          ).trim()
                                      def alias_list = readJSON(text: data)
                                      if (!alias_list.Aliases.isEmpty()) {
                                         alias_list.Aliases.each {
-                                          if ("${it.Name}" == "${aliasName}") {
-                                             echo "Alias ${aliasName} for Lambda Function ${functionName} is deployed"
+                                          if ("${it.Name}" == "${params.aliasName}") {
+                                             echo "Alias ${params.aliasName} for Lambda Function ${params.functionName} is deployed"
                                              isAliasDeployed = true
                                               } else {
-                                                echo "Alias ${aliasName} for Lambda Function ${functionName} does not exist"
+                                                echo "Alias ${params.aliasName} for Lambda Function ${params.functionName} does not exist"
                   			      }
                   			    }
                   	        //Check highest Lambda version i.e. oldVersion
                   		if (isAliasDeployed) {
                                                 data = sh (
-                                                      script: "aws --region ${REGION} lambda list-versions-by-function --function-name ${functionName}",
+                                                      script: "aws --region ${REGION} lambda list-versions-by-function --function-name ${params.functionName}",
                                                       returnStdout: true
                                                ).trim()
                                                 def old_version_list = readJSON(text: data)
@@ -124,10 +121,10 @@ pipeline {
                                                   old_versions.add(it.Version.toInteger())
                                                 }
                                                 oldVersion = old_versions.max()
-                                                echo "Old version of Lambda function ${functionName} is ${oldVersion}"
+                                                echo "Old version of Lambda function ${params.functionName} is ${oldVersion}"
 
                                               } else {
-                                                echo "Alias ${aliasName} does not exist, skipping version check"
+                                                echo "Alias ${params.aliasName} does not exist, skipping version check"
 
                   			      }
                   			    }
