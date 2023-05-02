@@ -163,11 +163,6 @@ pipeline {
                   echo "*************************************************"
                 fi
               ''')
-	      sh '''
-              if (retVal == 0) {
-                runStageFlag = false
-               }
-              '''
               }
             }
          }
@@ -177,7 +172,8 @@ pipeline {
     stage('Approval global') {
       when {
         anyOf {branch "main";branch "qa"; branch "stg"; branch "prod"}
-        expression { return runStageFlag }
+        // expression { return runStageFlag }
+        expression { return false }
       }
       steps {
         script {
