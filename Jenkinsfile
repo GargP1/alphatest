@@ -106,7 +106,8 @@ pipeline {
         stage('Get Pre-Deployment Lambda Version') {
             steps {
                 script {
-                    sh("echo 'check version'")
+                    //sh("echo 'check version'")
+                    sh("echo $BRANCH_NAME")
                 }
             }
         }
