@@ -243,7 +243,7 @@ pipeline {
                             #    --env $ENV \
                             #    --log-cli-level=INFO
 
-                            python3 trigger_batch_step_function.py \                                                                                                     ✔
+                            python3 trigger_batch_step_function.py \                                                                                          
                                 --bucket mle-ts-nextgen-ose-$ENV \
                                 --trigger_rule "lds batch score trigger" \
                                 --model_package_arn arn:aws:sagemaker:us-east-1:$ACCOUNT_NUMBER:model-package/atum-score-2022-12-21-15-30-3/1 \
