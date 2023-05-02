@@ -142,7 +142,7 @@ pipeline {
 
     stage('TF plan global') {
       steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
+	//withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
           container('terraform') {
             script {
               def retVal = sh(returnStatus: true, script: '''
@@ -169,7 +169,7 @@ pipeline {
           }
         }
       }
-    }
+    //}
 
     stage('Approval global') {
       when {
@@ -189,7 +189,7 @@ pipeline {
         expression { return runStageFlag }
       }
       steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
+	//withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
           container('terraform') {
             ansiColor('xterm') {
               sh '''
@@ -202,7 +202,7 @@ pipeline {
           }
         }
       }
-    }
+    //}
 
         stage('Get Post-Deployment Lambda Version') {
             steps {
