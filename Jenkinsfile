@@ -217,7 +217,8 @@ pipeline {
             steps {
                 container('aws-cli') {
                     script {
-                        sh """ #!/bin/bash
+                        sh """ 
+			    #!/bin/bash
 
                             # Assume role
                             aws sts get-caller-identity
@@ -243,12 +244,7 @@ pipeline {
                             #    --env $ENV \
                             #    --log-cli-level=INFO
 
-                            python3 trigger_batch_step_function.py \                                                                                          
-                                --bucket mle-ts-nextgen-ose-$ENV \
-                                --trigger_rule "lds batch score trigger" \
-                                --model_package_arn arn:aws:sagemaker:us-east-1:$ACCOUNT_NUMBER:model-package/atum-score-2022-12-21-15-30-3/1 \
-                                --input_data_key batch-transform-input/atum-score-gz-2022-12-21-15-30-3/atum-score-2022-12-21-15-30-3.jsonl.gz \
-                                --reference_output_key batch-transform-output/atum-score-2022-12-21-15-30-3-demo/output/atum-score-2022-12-21-15-30-3.jsonl.gzip.out
+                            python3 trigger_batch_step_function.py --bucket mle-ts-nextgen-ose-$ENV --trigger_rule "lds batch score trigger" --model_package_arn arn:aws:sagemaker:us-east-1:$ACCOUNT_NUMBER:model-package/atum-score-2022-12-21-15-30-3/1 --input_data_key batch-transform-input/atum-score-gz-2022-12-21-15-30-3/atum-score-2022-12-21-15-30-3.jsonl.gz --reference_output_key batch-transform-output/atum-score-2022-12-21-15-30-3-demo/output/atum-score-2022-12-21-15-30-3.jsonl.gzip.out
                         """
                     }
                 }
