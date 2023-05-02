@@ -107,10 +107,7 @@ pipeline {
         stage('Get Pre-Deployment Lambda Version') {
             steps {
                 script {
-                    //sh("echo 'check version'")
-                    sh '''
-                    env
-                   '''
+                    sh("echo 'check version'")
                 }
             }
         }
