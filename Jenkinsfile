@@ -170,11 +170,11 @@ pipeline {
     //}
 
     stage('Approval global') {
-      when {
-        anyOf {branch "main";branch "qa"; branch "stg"; branch "prod"}
+     // when {
+      //  anyOf {branch "main";branch "qa"; branch "stg"; branch "prod"}
         // expression { return runStageFlag }
-        expression { return false }
-      }
+      //  expression { return false }
+     // }
       steps {
         script {
           def userInput = input(id: 'confirm', message: 'Apply Terraform?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Apply terraform', name: 'confirm'] ])
@@ -183,10 +183,10 @@ pipeline {
     }
 
     stage('TF Apply global') {
-      when {
-        anyOf {branch "main";branch "qa"; branch "stg"; branch "prod"}
-        expression { return runStageFlag }
-      }
+     // when {
+     //   anyOf {branch "main";branch "qa"; branch "stg"; branch "prod"}
+     //   expression { return runStageFlag }
+     // }
       steps {
 	//withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
           container('terraform') {
