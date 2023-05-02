@@ -9,7 +9,7 @@ pipeline {
               labels:
                 some-label: some-label-value
             spec:
-              serviceAccountName: jenkins-agent-pods-build
+              serviceAccountName: jenkins
               containers:
               - name: aws-sam-cli
                 image: nginx 
