@@ -170,9 +170,7 @@ pipeline {
                }
               }
             }
-          }
         }
-      }
     //}
 
     stage('Approval global') {
