@@ -107,7 +107,9 @@ pipeline {
             steps {
                 script {
                     //sh("echo 'check version'")
-                    sh("echo $BRANCH_NAME")
+                    sh '''
+                    env
+                   '''
                 }
             }
         }
