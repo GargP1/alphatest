@@ -113,7 +113,7 @@ pipeline {
 
     stage('TF init & validate global') {
       steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
+	// withAWS(role: 'JenkinsDeployment', roleAccount: "${ENV}") {
           container('terraform') {
             ansiColor('xterm') {
               sh '''
@@ -138,7 +138,7 @@ pipeline {
           }
         }
       }
-    }
+    // }
 
     stage('TF plan global') {
       steps {
