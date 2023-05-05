@@ -76,8 +76,8 @@ pipeline {
     environment{
         ACCOUNT_NUMBER = getEnvAccountNumber(params.ENV)
         ENV = "${params.ENV}"
-        PROMOTE_FROM_ENV = getPromoteFromEnv(params.ENV)
-        PROMOTE_FROM_ENV_ACCOUNT_NUMBER = getEnvAccountNumber(params.PROMOTE_FROM_ENV)
+       // PROMOTE_FROM_ENV = getPromoteFromEnv(params.ENV)
+       // PROMOTE_FROM_ENV_ACCOUNT_NUMBER = getEnvAccountNumber(params.PROMOTE_FROM_ENV)
         AWS_DEFAULT_REGION = "us-east-1"
         BRANCH_NAME = "feature/PD-73955-Add-step-for-terraform-apply"
     }
