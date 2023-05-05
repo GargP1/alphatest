@@ -33,70 +33,38 @@ def getPromoteFromEnv(env) {
 
 pipeline {
     agent {
-        kubernetes {
-
-           yaml """
-        apiVersion: v1
-        kind: Pod
-        metadata:
-        labels:
-            deployment-runner: mle-ose-infra
-        spec:
-        serviceAccountName: jenkins-agent-pods
-        containers:
-        - name: aws-cli
-            //image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/amazon/aws-cli:latest
-            image: amazon/aws-cli
-            command:
-            - cat
-            tty: true
-        - name: terraform
-            //image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/terraform:latest
-            image: hasicorp/terraform
-            command:
-            - cat
-            tty: true
-            resources:
-            requests:
-                memory: "0.2G"
-                cpu: "0.1"
-        - name: jnlp
-            image: 'jenkins/inbound-agent'
-        """    
-
-            yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    deployment-runner: mle-ose-infra
-spec:
-  //serviceAccountName: jenkins-agent-pods
-  serviceAccountName: jenkins
-  containers:
-    - name: aws-cli
-      //image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/amazon/aws-cli:latest
-      image: amazon/aws-cli
-      command:
-        - cat
-      tty: true
-    - name: terraform
-      //image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/terraform:latest
-      image: terraform
-      command:
-        - cat
-      tty: true
-      resources:
-        requests:
-          memory: "0.2G"
-          cpu: "0.1"
-    - name: jnlp
-      //image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/jenkins/inbound-agent:latest
-        image: 'jenkins/inbound-agent'
-        """
-
+            kubernetes {
+                yaml """
+            apiVersion: v1
+            kind: Pod
+            metadata:
+            labels:
+                // some-label: some-label-value
+                jenkins: slave
+            spec:
+              //serviceAccountName: jenkins-agent-pods
+              serviceAccountName: jenkins
+              containers:
+              - name: aws-cli
+                //image: 023910024771.dkr.ecr.eu-west-1.amazonaws.com/amazon/aws-cli:latest
+                image: amazon/aws-cli
+                command:
+                - cat
+                tty: true
+              - name: terraform
+                image: hashicorp/terraform
+                command:
+                - cat
+                tty: true
+                resources:
+                  requests:
+                    memory: "0.2G"
+                    cpu: "0.1"
+              - name: jnlp
+                image: jenkins/inbound-agent
+            """
+            }
         }
-    }
 
     parameters {
         string(name: 'ENV', description: 'Select environment to apply changes to. Valid Values are osedev,oseqa,osestg,oseprod', defaultValue: "osedev")
