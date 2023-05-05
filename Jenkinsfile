@@ -92,7 +92,7 @@ spec:
           cpu: "0.1"
     - name: jnlp
       //image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/jenkins/inbound-agent:latest
-       image: jenkins/inbound-agent
+        image: jenkins/inbound-agent
         """
 
         }
