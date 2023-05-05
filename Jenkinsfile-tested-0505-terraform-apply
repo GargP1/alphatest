@@ -7,7 +7,8 @@ def getEnvAccountNumber(env) {
         qa: "575873681961",
         stg: "053548589897",
         prod: "913388582969",
-        osedev: "164375936220",
+       // osedev: "164375936220",
+        osedev: "412857254796",
         oseqa: "788119114344",
         osestg: "961665515316",
         oseprod: "951502535150",
@@ -32,74 +33,53 @@ def getPromoteFromEnv(env) {
 
 pipeline {
     agent {
-        kubernetes {
-
-           yaml """
-        apiVersion: v1
-        kind: Pod
-        metadata:
-        labels:
-            deployment-runner: mle-ose-infra
-        spec:
-        serviceAccountName: jenkins-agent-pods
-        containers:
-        - name: aws-cli
-            image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/amazon/aws-cli:latest
-            command:
-            - cat
-            tty: true
-        - name: terraform
-            image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/terraform:latest
-            command:
-            - cat
-            tty: true
-            resources:
-            requests:
-                memory: "2G"
-                cpu: "1"
-        - name: jnlp
-            image: '023910024771.dkr.ecr.us-east-1.amazonaws.com/jenkins/inbound-agent:latest'
-        """    
-
-            yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    deployment-runner: mle-ose-infra
-spec:
-  serviceAccountName: jenkins-agent-pods
-  containers:
-    - name: aws-cli
-      image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/amazon/aws-cli:latest
-      command:
-        - cat
-      tty: true
-    - name: terraform
-      image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/terraform:latest
-      command:
-        - cat
-      tty: true
-      resources:
-        requests:
-          memory: "2G"
-          cpu: "1"
-    - name: jnlp
-      image: 023910024771.dkr.ecr.us-east-1.amazonaws.com/jenkins/inbound-agent:latest
-        """
-
+            kubernetes {
+                yaml """
+            apiVersion: v1
+            kind: Pod
+            metadata:
+            labels:
+                // some-label: some-label-value
+                jenkins: slave
+            spec:
+              //serviceAccountName: jenkins-agent-pods
+              serviceAccountName: jenkins
+              containers:
+              - name: aws-cli
+                //image: 023910024771.dkr.ecr.eu-west-1.amazonaws.com/amazon/aws-cli:latest
+                image: amazon/aws-cli
+                command:
+                - cat
+                tty: true
+              - name: terraform
+                image: hashicorp/terraform
+                command:
+                - cat
+                tty: true
+                resources:
+                  requests:
+                    memory: "0.2G"
+                    cpu: "0.1"
+              - name: jnlp
+                image: jenkins/inbound-agent
+            """
+            }
         }
-    }
 
     parameters {
         string(name: 'ENV', description: 'Select environment to apply changes to. Valid Values are osedev,oseqa,osestg,oseprod', defaultValue: "osedev")
         string(name: 'Environment', description: 'Provide the environment name, this will be used for tfvars file', defaultValue: "dev")
+      //  choice(name: 'ENV', choices: ['osedev', 'oseqa', 'osestg', 'oseprod'], description: 'Select environment to apply changes to', defaultValue: "osedev")
+      //  choice(name: 'PROMOTE_FROM_ENV', choices: ['osedev', 'oseqa', 'osestg', 'oseprod'], description: 'Select environment to apply changes to')
     }
 
     environment{
         ACCOUNT_NUMBER = getEnvAccountNumber(params.ENV)
         ENV = "${params.ENV}"
+       // PROMOTE_FROM_ENV = getPromoteFromEnv(params.ENV)
+       // PROMOTE_FROM_ENV_ACCOUNT_NUMBER = getEnvAccountNumber(params.PROMOTE_FROM_ENV)
         AWS_DEFAULT_REGION = "us-east-1"
+        BRANCH_NAME = "feature/PD-73955-Add-step-for-terraform-apply"
     }
 
     stages {
@@ -108,7 +88,7 @@ spec:
            steps {
                 script {
                     // Reads file by leveraging the 'Pipeline Utility Steps' plugin
-                    readProperties(file: "tf/env_vars/${params.Environment}-${AWS_DEFAULT_REGION}.tfvars").each { key, value -> env[key] = value }
+                    readProperties(file: "tf/env_vars/${params.Environment}-us-east-1.tfvars").each { key, value -> env[key] = value }
                 }
             }
         }
@@ -159,9 +139,9 @@ spec:
         }
 
     stage('TF init & validate global') {
-     when { anyOf {branch "feature/*";branch "dev";branch "qa";branch "stg";branch "prod";changeRequest() } }
+ //    when { anyOf {branch "feature/*";branch "dev";branch "qa";branch "stg";branch "prod";changeRequest() } }
       steps {
-	 withAWS(role: 'JenkinsDeployment', roleAccount: "${ACCOUNT_NUMBER}") {
+//	 withAWS(role: 'JenkinsDeployment', roleAccount: "${ACCOUNT_NUMBER}") {
           container('terraform') {
             ansiColor('xterm') {
               sh '''
@@ -180,12 +160,12 @@ spec:
           }
         }
       }
-    }
+ //   }
 
     stage('TF plan global') {
-     when { anyOf {branch "feature/*";branch "dev";branch "qa";branch "stg";branch "prod";changeRequest() } }
+  //   when { anyOf {branch "feature/*";branch "dev";branch "qa";branch "stg";branch "prod";changeRequest() } }
       steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: "${ACCOUNT_NUMBER}") {
+//	withAWS(role: 'JenkinsDeployment', roleAccount: "${ACCOUNT_NUMBER}") {
           container('terraform') {
             script  {
               def retVal = sh(returnStatus: true, script: '''
@@ -204,10 +184,10 @@ spec:
            }
          }
       }
-    }
+ //   }
 
     stage('Approval global') {
-     when { anyOf {branch "feature/*";branch "dev";branch "qa";branch "stg";branch "prod";changeRequest() } }
+   //   when { anyOf {branch "feature/*";branch "dev";branch "qa";branch "stg";branch "prod";changeRequest() } }
       steps {
         script {
           def userInput = input(id: 'confirm', message: 'Apply Terraform?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Apply terraform', name: 'confirm'] ])
@@ -216,9 +196,9 @@ spec:
     }
 
     stage('TF Apply global') {
-     when { anyOf {branch "dev";branch "qa";branch "stg";branch "prod";changeRequest() } }
+   //   when { anyOf {branch "dev";branch "qa";branch "stg";branch "prod";changeRequest() } }
       steps {
-	withAWS(role: 'JenkinsDeployment', roleAccount: "${ACCOUNT_NUMBER}") {
+//	withAWS(role: 'JenkinsDeployment', roleAccount: "${ACCOUNT_NUMBER}") {
           container('terraform') {
             ansiColor('xterm') {
               sh '''
@@ -230,7 +210,7 @@ spec:
           }
         }
       }
-    }
+ //   }
 
         stage('Get Post-Deployment Lambda Version') {
             steps {
